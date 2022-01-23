@@ -1,5 +1,7 @@
 TEX = pandoc
-src = template.tex details.yml
+TEMPLATE = template.tex
+DETAILS = details.yml
+src = $(TEMPLATE) $(DETAILS)
 FLAGS = --pdf-engine=xelatex
 DOCKERTAG = neftaio/invoice-boilerplate
 DOCKERIMAGE := $(shell docker images -q $(DOCKERTAG):latest)
@@ -18,15 +20,7 @@ ifeq ($(DOCKERIMAGE),)
 	$(MAKE) build
 endif
 
-	@echo Processing document
-
-	docker run --rm -v "$(PWD)":/usr/src/project -w /usr/src/project $(DOCKERTAG) make -f makefile-inner
-
-.PHONY: process 
-process:
-	ls
-	#$(TEX) $(filter-out $<,$^ ) -o $@ --template=$< $(FLAGS)
-
+	docker run --rm -v "$(PWD)":/usr/src/project -w /usr/src/project $(DOCKERTAG) bash compile.sh -t $(TEMPLATE) -d $(DETAILS)
 
 .PHONY: build
 build:
@@ -39,5 +33,3 @@ rmi:
 .PHONY: bash
 bash:
 	docker run --rm  -v "$(PWD)":/usr/src/project -w /usr/src/project -it --entrypoint bash $(DOCKERTAG)
-
-	#docker run --rm -v "$PWD":/usr/src/project -w /usr/src/project make
